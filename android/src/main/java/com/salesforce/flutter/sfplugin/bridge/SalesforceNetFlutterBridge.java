@@ -23,7 +23,7 @@
  */
 package com.salesforce.flutter.sfplugin.bridge;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Base64;
 
 import com.salesforce.androidsdk.rest.RestClient;

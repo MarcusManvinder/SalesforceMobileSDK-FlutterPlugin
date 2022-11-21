@@ -23,6 +23,8 @@
  */
 package com.salesforce.flutter.sfplugin;
 
+import androidx.annotation.NonNull;
+
 import com.salesforce.flutter.sfplugin.bridge.SalesforceFlutterBridge;
 import com.salesforce.flutter.sfplugin.bridge.SalesforceNetFlutterBridge;
 import com.salesforce.flutter.sfplugin.bridge.SalesforceOauthFlutterBridge;
@@ -30,6 +32,7 @@ import com.salesforce.flutter.sfplugin.bridge.SmartStoreFlutterBridge;
 import com.salesforce.flutter.sfplugin.bridge.SmartSyncFlutterBridge;
 import com.salesforce.flutter.sfplugin.ui.SalesforceFlutterActivity;
 
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -39,7 +42,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 /**
  * Salesforce flutter plugin
  */
-public class SfpluginPlugin implements MethodCallHandler {
+public class SfpluginPlugin implements FlutterPlugin, MethodCallHandler {
 
     private final SalesforceOauthFlutterBridge oauthBridge;
     private final SalesforceNetFlutterBridge networkBridge;
@@ -53,6 +56,17 @@ public class SfpluginPlugin implements MethodCallHandler {
     public static void registerWith(Registrar registrar) {
         final MethodChannel channel = new MethodChannel(registrar.messenger(), "sfplugin");
         channel.setMethodCallHandler(new SfpluginPlugin((SalesforceFlutterActivity) registrar.activity()));
+    }
+
+    @Override
+    public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
+        final MethodChannel channel = new MethodChannel(binding.getBinaryMessenger(), "sfplugin");
+        channel.setMethodCallHandler(this);
+    }
+
+    @Override
+    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+
     }
 
     private SfpluginPlugin(SalesforceFlutterActivity currentActivity) {

@@ -31,13 +31,13 @@ import android.view.KeyEvent;
 import android.widget.Toast;
 
 import com.salesforce.androidsdk.app.SalesforceSDKManager;
+import com.salesforce.androidsdk.mobilesync.util.MobileSyncLogger;
 import com.salesforce.androidsdk.rest.ClientManager;
 import com.salesforce.androidsdk.rest.ClientManager.RestClientCallback;
 import com.salesforce.androidsdk.rest.RestClient;
 import com.salesforce.androidsdk.ui.SalesforceActivityDelegate;
 import com.salesforce.androidsdk.ui.SalesforceActivityInterface;
-import io.flutter.app.FlutterActivity;
-import com.salesforce.androidsdk.smartsync.util.SmartSyncLogger;
+import io.flutter.embedding.android.FlutterActivity;
 
 /**
  * Super class for all Salesforce flutter activities.
@@ -76,7 +76,7 @@ public abstract class SalesforceFlutterActivity extends FlutterActivity implemen
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SmartSyncLogger.i(TAG, "onCreate called");
+        MobileSyncLogger.i(TAG, "onCreate called");
         super.onCreate(savedInstanceState);
 
         // Get clientManager
@@ -125,20 +125,20 @@ public abstract class SalesforceFlutterActivity extends FlutterActivity implemen
 
             // Online
             if (SalesforceSDKManager.getInstance().hasNetwork()) {
-                SmartSyncLogger.i(TAG, "onResumeNotLoggedIn - should authenticate/online - authenticating");
+                MobileSyncLogger.i(TAG, "onResumeNotLoggedIn - should authenticate/online - authenticating");
                 login();
             }
 
             // Offline
             else {
-                SmartSyncLogger.w(TAG, "onResumeNotLoggedIn - should authenticate/offline - can not proceed");
+                MobileSyncLogger.w(TAG, "onResumeNotLoggedIn - should authenticate/offline - can not proceed");
                 onErrorAuthenticateOffline();
             }
         }
 
         // Does not need to be authenticated
         else {
-            SmartSyncLogger.i(TAG, "onResumeNotLoggedIn - should not authenticate");
+            MobileSyncLogger.i(TAG, "onResumeNotLoggedIn - should not authenticate");
         }
     }
 
@@ -155,10 +155,10 @@ public abstract class SalesforceFlutterActivity extends FlutterActivity implemen
         super.onDestroy();
     }
 
-    @Override
-    public void onUserInteraction() {
-        delegate.onUserInteraction();
-    }
+//    @Override
+//    public void onUserInteraction() {
+//        delegate.onUserInteraction();
+//    }
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
@@ -166,15 +166,15 @@ public abstract class SalesforceFlutterActivity extends FlutterActivity implemen
     }
 
     protected void login() {
-        SmartSyncLogger.i(TAG, "login called");
+        MobileSyncLogger.i(TAG, "login called");
         clientManager.getRestClient(this, new RestClientCallback() {
             @Override
             public void authenticatedRestClient(RestClient client) {
                 if (client == null) {
-                    SmartSyncLogger.i(TAG, "login callback triggered with null client");
+                    MobileSyncLogger.i(TAG, "login callback triggered with null client");
                     logout();
                 } else {
-                    SmartSyncLogger.i(TAG, "login callback triggered with actual client");
+                    MobileSyncLogger.i(TAG, "login callback triggered with actual client");
                     recreate();
                 }
             }
@@ -204,7 +204,7 @@ public abstract class SalesforceFlutterActivity extends FlutterActivity implemen
     }
 
     public void logout() {
-        SmartSyncLogger.i(TAG, "logout called");
+        MobileSyncLogger.i(TAG, "logout called");
         SalesforceSDKManager.getInstance().logout(this);
     }
 }

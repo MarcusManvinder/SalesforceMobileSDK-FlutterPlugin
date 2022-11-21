@@ -1,6 +1,11 @@
 name: sfplugin_example
 description: Demonstrates how to use the sfplugin plugin.
 
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+  
 dependencies:
   flutter:
     sdk: flutter

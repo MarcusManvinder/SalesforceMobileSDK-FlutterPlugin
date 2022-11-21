@@ -26,7 +26,7 @@
  */
 package com.salesforce.flutter.sfpluginexample;
 
-import com.salesforce.androidsdk.smartsync.app.SmartSyncSDKManager;
+import com.salesforce.androidsdk.mobilesync.app.MobileSyncSDKManager;
 
 import io.flutter.app.FlutterApplication;
 
@@ -38,7 +38,7 @@ public class MainApplication extends FlutterApplication {
     @Override
     public void onCreate() {
         super.onCreate();
-        SmartSyncSDKManager.initNative(getApplicationContext(), MainActivity.class);
+        MobileSyncSDKManager.initNative(getApplicationContext(), MainActivity.class);
 
         /*
          * Uncomment the following line to enable IDP login flow. This will allow the user to
