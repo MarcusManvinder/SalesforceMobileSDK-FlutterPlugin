@@ -33,11 +33,13 @@ import com.salesforce.flutter.sfplugin.bridge.SmartSyncFlutterBridge;
 import com.salesforce.flutter.sfplugin.ui.SalesforceFlutterActivity;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.activity.ActivityAware;
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
+import io.flutter.plugin.common.PluginRegistry;
 
 /**
  * Salesforce flutter plugin
@@ -76,7 +78,7 @@ public class SfpluginPlugin implements FlutterPlugin, ActivityAware, MethodCallH
         initSFBridge(currentActivity);
     }
 
-    private initSFBridge(SalesforceFlutterActivity currentActivity) {
+    private void initSFBridge(SalesforceFlutterActivity currentActivity) {
         this.networkBridge = new SalesforceNetFlutterBridge(currentActivity);
         this.oauthBridge = new SalesforceOauthFlutterBridge(currentActivity);
         this.smartStoreFlutterBridge = new SmartStoreFlutterBridge(currentActivity);
