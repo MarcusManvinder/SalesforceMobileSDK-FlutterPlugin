@@ -42,25 +42,26 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 /**
  * Salesforce flutter plugin
  */
-public class SfpluginPlugin implements FlutterPlugin, MethodCallHandler {
+public class SfpluginPlugin implements FlutterPlugin, ActivityAware, MethodCallHandler {
 
-    private final SalesforceOauthFlutterBridge oauthBridge;
-    private final SalesforceNetFlutterBridge networkBridge;
-    private final SmartStoreFlutterBridge smartStoreFlutterBridge;
-    private final SmartSyncFlutterBridge smartSyncFlutterBridge;
+    private SalesforceOauthFlutterBridge oauthBridge;
+    private SalesforceNetFlutterBridge networkBridge;
+    private SmartStoreFlutterBridge smartStoreFlutterBridge;
+    private SmartSyncFlutterBridge smartSyncFlutterBridge;
 
+    private SalesforceFlutterActivity _activity;
 
     /**
      * Plugin registration.
      */
-    public static void registerWith(Registrar registrar) {
+    public static void registerWith(PluginRegistry.Registrar registrar) {
         final MethodChannel channel = new MethodChannel(registrar.messenger(), "sfplugin");
         channel.setMethodCallHandler(new SfpluginPlugin((SalesforceFlutterActivity) registrar.activity()));
     }
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
-        final MethodChannel channel = new MethodChannel(binding.getBinaryMessenger(), "sfplugin");
+       final MethodChannel channel = new MethodChannel(binding.getBinaryMessenger(), "sfplugin");
         channel.setMethodCallHandler(this);
     }
 
@@ -69,7 +70,13 @@ public class SfpluginPlugin implements FlutterPlugin, MethodCallHandler {
 
     }
 
+    public SfpluginPlugin() {}
+
     private SfpluginPlugin(SalesforceFlutterActivity currentActivity) {
+        initSFBridge(currentActivity);
+    }
+
+    private initSFBridge(SalesforceFlutterActivity currentActivity) {
         this.networkBridge = new SalesforceNetFlutterBridge(currentActivity);
         this.oauthBridge = new SalesforceOauthFlutterBridge(currentActivity);
         this.smartStoreFlutterBridge = new SmartStoreFlutterBridge(currentActivity);
@@ -78,14 +85,38 @@ public class SfpluginPlugin implements FlutterPlugin, MethodCallHandler {
 
     @Override
     public void onMethodCall(MethodCall call, Result result) {
-        String prefix = call.method.substring(0, call.method.indexOf("#"));
+        if (_activity != null) {
+            String prefix = call.method.substring(0, call.method.indexOf("#"));
 
-        for (SalesforceFlutterBridge bridge : new SalesforceFlutterBridge[] { oauthBridge, networkBridge, smartStoreFlutterBridge, smartSyncFlutterBridge}) {
-            if (call.method.startsWith(bridge.getPrefix() + "#")) {
-                bridge.onMethodCall(call, result);
-                return;
+            for (SalesforceFlutterBridge bridge : new SalesforceFlutterBridge[] { oauthBridge, networkBridge, smartStoreFlutterBridge, smartSyncFlutterBridge}) {
+                if (call.method.startsWith(bridge.getPrefix() + "#")) {
+                    bridge.onMethodCall(call, result);
+                    return;
+                }
             }
+            result.notImplemented();
         }
-        result.notImplemented();
+    }
+
+    @Override
+    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+        _activity = (SalesforceFlutterActivity) binding.getActivity();
+
+        initSFBridge(_activity);
+    }
+
+    @Override
+    public void onDetachedFromActivityForConfigChanges() {
+        _activity = null;
+    }
+
+    @Override
+    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+        _activity = (SalesforceFlutterActivity) binding.getActivity();
+    }
+
+    @Override
+    public void onDetachedFromActivity() {
+        _activity = null;
     }
 }
