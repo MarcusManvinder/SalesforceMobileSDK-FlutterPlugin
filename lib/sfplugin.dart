@@ -50,4 +50,25 @@ class SalesforcePlugin {
 
   static Future<Map> query(String soql) =>
       sendRequest(path: "/${apiVersion}/query", payload: {'q': soql});
+
+  static Future<Map> post(Map params) => sendRequest(
+        path: "/${apiVersion}/sobjects/MetricsEntry__c",
+        method: "POST",
+        payload: params,
+        fileParams: Map(),
+      );
+
+  static Future<Map> delete(String id) => sendRequest(
+        path: "/${apiVersion}/sobjects/MetricsEntry__c/${id}",
+        method: "DELETE",
+        payload: Map(),
+        fileParams: Map(),
+      );
+
+  static Future<Map> patch(String id, Map params) => sendRequest(
+        path: "/${apiVersion}/sobjects/MetricsEntry__c/${id}",
+        method: "PATCH",
+        payload: params,
+        fileParams: Map(),
+      );
 }
