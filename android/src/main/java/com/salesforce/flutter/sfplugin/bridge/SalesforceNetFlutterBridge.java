@@ -41,6 +41,7 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.Map;
 
+import io.flutter.Log;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import okhttp3.MediaType;
@@ -55,7 +56,8 @@ public class SalesforceNetFlutterBridge extends SalesforceFlutterBridge {
     private static final String PREFIX = "network";
 
     enum Method {
-        sendRequest
+        sendRequest,
+        getClientInfo
     }
 
     private static final String METHOD_KEY = "method";
@@ -71,6 +73,29 @@ public class SalesforceNetFlutterBridge extends SalesforceFlutterBridge {
     private static final String ENCODED_BODY = "encodedBody";
     private static final String CONTENT_TYPE = "contentType";
     private static final String TAG = "SalesforceNetFlutterBridge";
+    private static final String CLIENT_INSTANCE_URL = "instanceUrl";
+    private static final String CLIENT_LOGIN_URL = "loginUrl";
+    private static final String CLIENT_ACCOUNT_NAME = "accountName";
+    private static final String CLIENT_USERNAME = "username";
+    private static final String CLIENT_USER_ID = "userId";
+    private static final String CLIENT_ORG_ID = "orgId";
+    private static final String CLIENT_COMMUNITY_ID = "communityId";
+    private static final String CLIENT_COMMUNITY_URL = "communityUrl";
+    private static final String CLIENT_FIRST_NAME = "firstName";
+    private static final String CLIENT_LAST_NAME = "lastName";
+    private static final String CLIENT_DISPLAY_NAME = "displayName";
+    private static final String CLIENT_EMAIL = "email";
+    private static final String CLIENT_PHOTO_URL = "photoUrl";
+    private static final String CLIENT_THUMBNAIL_URL = "thumbnailUrl";
+    private static final String CLIENT_LIGHTNING_DOMAIN = "lightningDomain";
+    private static final String CLIENT_LIGHTNING_ID = "lightningSid";
+    private static final String CLIENT_VF_DOMAIN = "vfDomain";
+    private static final String CLIENT_VF_SID = "vfSid";
+    private static final String CLIENT_CONTENT_DOMAIN = "contentDomain";
+    private static final String CLIENT_CONTENT_SID = "contentSid";
+    private static final String CLIENT_IDENTITY_URL = "identityUrl";
+    private static final String CONTENT_CSRF_TOKEN = "csrfToken";
+    private static final String CONTENT_ADDITIONAL_OAUTH_VALUES = "additionalOauthValues";
 
     public SalesforceNetFlutterBridge(SalesforceFlutterActivity currentActivity) {
         super(currentActivity);
@@ -87,13 +112,58 @@ public class SalesforceNetFlutterBridge extends SalesforceFlutterBridge {
         switch(method) {
             case sendRequest:
                 sendRequest((Map<String, Object>) call.arguments, result); break;
+            case getClientInfo:
+                getClientInfo((Map<String, Object>) call.arguments, result); break;
             default:
                 result.notImplemented();
         }
     }
 
+    protected void getClientInfo(Map<String, Object> args,
+                                 final MethodChannel.Result callback) {
+        try {
+            // Getting restClient
+            RestClient restClient = getRestClient();
+
+            if (restClient == null) {
+                callback.error("No restClient", null, null);
+                return;
+            }
+            final RestClient.ClientInfo clientInfo = restClient.getClientInfo();
+            final JSONObject result = new JSONObject();
+            result.put(CLIENT_INSTANCE_URL, clientInfo.instanceUrl);
+            result.put(CLIENT_LOGIN_URL, clientInfo.loginUrl);
+            result.put(CLIENT_ACCOUNT_NAME, clientInfo.accountName);
+            result.put(CLIENT_USERNAME, clientInfo.username);
+            result.put(CLIENT_USER_ID, clientInfo.userId);
+            result.put(CLIENT_ORG_ID, clientInfo.orgId);
+            result.put(CLIENT_COMMUNITY_ID, clientInfo.communityId);
+            result.put(CLIENT_COMMUNITY_URL, clientInfo.communityUrl);
+            result.put(CLIENT_FIRST_NAME, clientInfo.firstName);
+            result.put(CLIENT_LAST_NAME, clientInfo.lastName);
+            result.put(CLIENT_DISPLAY_NAME, clientInfo.displayName);
+            result.put(CLIENT_EMAIL, clientInfo.email);
+            result.put(CLIENT_PHOTO_URL, clientInfo.photoUrl);
+            result.put(CLIENT_THUMBNAIL_URL, clientInfo.thumbnailUrl);
+            result.put(CLIENT_LIGHTNING_DOMAIN, clientInfo.lightningDomain);
+            result.put(CLIENT_LIGHTNING_ID, clientInfo.lightningSid);
+            result.put(CLIENT_VF_DOMAIN, clientInfo.vfDomain);
+            result.put(CLIENT_VF_SID, clientInfo.vfSid);
+            result.put(CLIENT_CONTENT_DOMAIN, clientInfo.contentDomain);
+            result.put(CLIENT_CONTENT_SID, clientInfo.contentSid);
+            result.put(CLIENT_IDENTITY_URL, clientInfo.identityUrl);
+            result.put(CONTENT_CSRF_TOKEN, clientInfo.csrfToken);
+
+            result.put(CONTENT_ADDITIONAL_OAUTH_VALUES, clientInfo.additionalOauthValues);
+
+            callback.success(result.toString());
+        } catch (Exception exception) {
+            returnError("getClientInfo failed: ", exception, callback);
+        }
+    }
+
     protected void sendRequest(Map<String, Object> args,
-                            final MethodChannel.Result callback) {
+                               final MethodChannel.Result callback) {
 
         try {
             // Getting restClient
@@ -132,15 +202,22 @@ public class SalesforceNetFlutterBridge extends SalesforceFlutterBridge {
                             callback.success(response.asString());
                         }
                     } catch (Exception e) {
+                        if (e instanceof RestClient.RefreshTokenRevokedException) {
+                            currentActivity.logout();
+                        }
                         returnError("sendRequest failed", e, callback);
                     }
                 }
 
                 @Override
                 public void onError(Exception exception) {
+                    if (exception instanceof RestClient.RefreshTokenRevokedException) {
+                        currentActivity.logout();
+                    }
                     returnError("sendRequest failed", exception, callback);
                 }
             });
+
         } catch (Exception exception) {
             returnError("sendRequest failed", exception, callback);
         }
@@ -216,7 +293,6 @@ public class SalesforceNetFlutterBridge extends SalesforceFlutterBridge {
                 MediaType mediaType = MediaType.parse(mimeType);
                 builder.addFormDataPart(fileParamName, name, RequestBody.create(mediaType, file));
             }
-
             return builder.build();
         }
     }

@@ -71,4 +71,10 @@ class SalesforcePlugin {
         payload: params,
         fileParams: Map(),
       );
+
+  static Future<Map> getClientInfo() async {
+    final Object response =
+        await _channel.invokeMethod('network#getClientInfo');
+    return response is Map ? response : json.decode(response.toString());
+  }
 }
