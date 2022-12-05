@@ -25,6 +25,8 @@ package com.salesforce.flutter.sfplugin.bridge;
 
 import com.salesforce.flutter.sfplugin.ui.SalesforceFlutterActivity;
 
+import java.util.Map;
+
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 
@@ -36,7 +38,7 @@ public class SalesforceOauthFlutterBridge extends SalesforceNetFlutterBridge {
     public static final String PREFIX = "oauth";
 
     enum Method {
-
+        logout,
     }
 
     private static final String TAG = "SalesforceOauthFlutterBridge";
@@ -54,8 +56,14 @@ public class SalesforceOauthFlutterBridge extends SalesforceNetFlutterBridge {
     public void onMethodCall(MethodCall call, MethodChannel.Result result) {
         Method method = Method.valueOf(call.method.substring(PREFIX.length() + 1));
         switch(method) {
+            case logout:
+                logout((Map<String, Object>) call.arguments, result); break;
             default:
                 result.notImplemented();
         }
+    }
+
+    void logout(Map<String, Object> args, final MethodChannel.Result callback) {
+        currentActivity.logout();
     }
 }

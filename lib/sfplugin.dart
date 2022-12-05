@@ -77,4 +77,12 @@ class SalesforcePlugin {
         await _channel.invokeMethod('network#getClientInfo');
     return response is Map ? response : json.decode(response.toString());
   }
+
+  static Future<void> logout() async {
+    try {
+      await _channel.invokeMethod('oauth#logout');
+    } on PlatformException catch (e) {
+      throw ArgumentError('Unable to logout');
+    }
+  }
 }
