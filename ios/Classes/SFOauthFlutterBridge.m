@@ -23,11 +23,24 @@
  */
 
 #import "SFOauthFlutterBridge.h"
+#import "SalesforceSDKCore.h"
 
 @implementation SFOauthFlutterBridge
 
 - (NSString*) prefix {
     return @"oauth";
+}
+
+- (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
+    if ([@"oauth#logout" isEqualToString:call.method]) {
+        [self logout];
+    } else {
+        result(FlutterMethodNotImplemented);
+    }
+}
+
+- (void) logout {
+    [SFUserAccountManager.sharedInstance logout];
 }
 
 @end

@@ -1,4 +1,5 @@
-platform :ios, '10.0'
+#platform :ios, '10.0'
+require_relative '../../mobile_sdk/SalesforceMobileSDK-iOS/mobilesdk_pods'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -26,11 +27,8 @@ def parse_KV_file(file, separator='=')
 end
 
 target 'Runner' do
-  pod 'SalesforceAnalytics', :path => '../../mobile_sdk/SalesforceMobileSDK-iOS'
-  pod 'SalesforceSDKCore', :path => '../../mobile_sdk/SalesforceMobileSDK-iOS'
-  pod 'SmartStore', :path => '../../mobile_sdk/SalesforceMobileSDK-iOS'
-  pod 'SmartSync', :path => '../../mobile_sdk/SalesforceMobileSDK-iOS'
-
+  use_mobile_sdk!(:path => '../../mobile_sdk/SalesforceMobileSDK-iOS')
+  
   # Prepare symlinks folder. We use symlinks to avoid having Podfile.lock
   # referring to absolute paths on developers' machines.
   system('rm -rf Pods/.symlinks')
@@ -59,6 +57,11 @@ target 'Runner' do
   }
 end
 
+pre_install do |installer|
+  # Mobile SDK pre install
+  mobile_sdk_pre_install(installer)  
+end
+
 post_install do |installer|
   # Fix for xcode9/fmdb/sqlcipher/cocoapod issue - see https://discuss.zetetic.net/t/ios-11-xcode-issue-implicit-declaration-of-function-sqlite3-key-is-invalid-in-c99/2198/27
   print "SQLCipher: link Pods/Headers/sqlite3.h"
@@ -69,4 +72,7 @@ post_install do |installer|
       config.build_settings['ENABLE_BITCODE'] = 'NO'
     end
   end
+
+  # Mobile SDK post install
+  mobile_sdk_post_install(installer)
 end

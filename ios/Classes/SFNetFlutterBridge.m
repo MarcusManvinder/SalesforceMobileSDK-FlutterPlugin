@@ -22,6 +22,7 @@
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#import "SalesforceSDKCore.h"
 #import "SFNetFlutterBridge.h"
 #import <SalesforceSDKCore/NSDictionary+SFAdditions.h>
 #import <SalesforceSDKCore/SFRestAPI+Blocks.h>
@@ -40,6 +41,14 @@ static NSString * const kReturnBinary    = @"returnBinary";
 static NSString * const kEncodedBody     = @"encodedBody";
 static NSString * const kContentType     = @"contentType";
 static NSString * const kHttpContentType = @"content-type";
+
+
+static NSString * const kInstanceUrl = @"instanceUrl";
+static NSString * const kLoginUrl = @"loginUrl";
+static NSString * const kAccountName = @"accountName";
+static NSString * const kUsername = @"username";
+static NSString * const kUserId = @"userId";
+static NSString * const kOrgId = @"orgId";
 
 @implementation SFNetFlutterBridge
 
@@ -91,7 +100,7 @@ static NSString * const kHttpContentType = @"content-type";
             NSString* fileUrl = [fileParam nonNullObjectForKey:kFileUrl];
             NSString* fileName = [fileParam nonNullObjectForKey:kFileName];
             NSData* fileData = [NSData dataWithContentsOfURL:[NSURL URLWithString:fileUrl]];
-            [request addPostFileData:fileData paramName:fileParamName description:nil fileName:fileName mimeType:fileMimeType];
+            [request addPostFileData:fileData paramName:fileParamName fileName:fileName mimeType:fileMimeType params:fileParam];
         }
     }
 
@@ -100,41 +109,54 @@ static NSString * const kHttpContentType = @"content-type";
         request.parseResponse = NO;
     }
 
+    [[SFRestAPI sharedInstance] sendRequest:request failureBlock:^(id  _Nullable response, NSError * _Nullable e, NSURLResponse * _Nullable rawResponse) {
+        // XXX callback(@[RCTMakeError(@"sendRequest failed", e, nil)]);
+        callback([FlutterError errorWithCode:@"ERROR" message:@"sendRequest failed" details:nil]);
+    } successBlock:^(id  _Nullable response, NSURLResponse * _Nullable rawResponse) {
+        id result;
 
-    [[SFRestAPI sharedInstance] sendRESTRequest:request
-                                      failBlock:^(NSError *e, NSURLResponse *rawResponse) {
-                                          // XXX callback(@[RCTMakeError(@"sendRequest failed", e, nil)]);
-                                      }
-                                  completeBlock:^(id response, NSURLResponse *rawResponse) {
-                                      id result;
+        // Binary response
+        if (returnBinary) {
+            result = @{
+                       kEncodedBody:[((NSData*) response) base64EncodedStringWithOptions:0],
+                       kContentType:((NSHTTPURLResponse*) rawResponse).allHeaderFields[kHttpContentType]
+                       };
+        }
+        // Some response
+        else if (response) {
+            if ([response isKindOfClass:[NSDictionary class]]) {
+                result = response;
+            } else if ([response isKindOfClass:[NSArray class]]) {
+                result = response;
+            } else {
+                NSData* responseAsData = response;
+                NSStringEncoding encodingType = rawResponse.textEncodingName == nil ? NSUTF8StringEncoding :  CFStringConvertEncodingToNSStringEncoding(CFStringConvertIANACharSetNameToEncoding((CFStringRef)rawResponse.textEncodingName));
+                result = [[NSString alloc] initWithData:responseAsData encoding:encodingType];
+            }
+        }
+        // No response
+        else {
+            result = nil;
+        }
 
-                                      // Binary response
-                                      if (returnBinary) {
-                                          result = @{
-                                                     kEncodedBody:[((NSData*) response) base64EncodedStringWithOptions:0],
-                                                     kContentType:((NSHTTPURLResponse*) rawResponse).allHeaderFields[kHttpContentType]
-                                                     };
-                                      }
-                                      // Some response
-                                      else if (response) {
-                                          if ([response isKindOfClass:[NSDictionary class]]) {
-                                              result = response;
-                                          } else if ([response isKindOfClass:[NSArray class]]) {
-                                              result = response;
-                                          } else {
-                                              NSData* responseAsData = response;
-                                              NSStringEncoding encodingType = rawResponse.textEncodingName == nil ? NSUTF8StringEncoding :  CFStringConvertEncodingToNSStringEncoding(CFStringConvertIANACharSetNameToEncoding((CFStringRef)rawResponse.textEncodingName));
-                                              result = [[NSString alloc] initWithData:responseAsData encoding:encodingType];
-                                          }
-                                      }
-                                      // No response
-                                      else {
-                                          result = nil;
-                                      }
+        callback(result);
+    }];
+}
 
-                                      callback(result);
-                                  }
-     ];
+- (void) getClientInfo:(NSDictionary *)argsDict result:(FlutterResult)callback
+{
+    SFUserAccount* currentUser = SFUserAccountManager.sharedInstance.currentUser;
+    if (currentUser == nil) {
+        callback([FlutterError errorWithCode:@"ERROR" message:@"No userAccount" details:nil]);
+    } else {
+        id useInfo = @{
+                   kInstanceUrl: currentUser.idData.idUrl,
+                   kUsername: currentUser.idData.username,
+                   kUserId: currentUser.idData.userId,
+                   kOrgId: currentUser.idData.orgId,
+                };
+        callback(useInfo);
+    }
 }
 
 @end
