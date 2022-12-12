@@ -22,6 +22,7 @@
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 #import "SalesforceSDKCore.h"
 #import "SFNetFlutterBridge.h"
 #import <SalesforceSDKCore/NSDictionary+SFAdditions.h>
@@ -42,13 +43,18 @@ static NSString * const kEncodedBody     = @"encodedBody";
 static NSString * const kContentType     = @"contentType";
 static NSString * const kHttpContentType = @"content-type";
 
-
 static NSString * const kInstanceUrl = @"instanceUrl";
 static NSString * const kLoginUrl = @"loginUrl";
 static NSString * const kAccountName = @"accountName";
 static NSString * const kUsername = @"username";
 static NSString * const kUserId = @"userId";
 static NSString * const kOrgId = @"orgId";
+static NSString * const kFirstName = @"firstName";
+static NSString * const kLastName = @"lastName";
+static NSString * const kDisplayName = @"displayName";
+static NSString * const kEmail = @"email";
+static NSString * const kPhotoUrl = @"photoUrl";
+static NSString * const kThumbnailUrl = @"thumbnailUrl";
 
 @implementation SFNetFlutterBridge
 
@@ -59,6 +65,8 @@ static NSString * const kOrgId = @"orgId";
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
     if ([@"network#sendRequest" isEqualToString:call.method]) {
         [self sendRequest:call.arguments result:result];
+    } else if ([@"network#getClientInfo" isEqualToString:call.method]) {
+        [self getClientInfo:call.arguments result:result];
     } else {
         result(FlutterMethodNotImplemented);
     }
@@ -109,38 +117,42 @@ static NSString * const kOrgId = @"orgId";
         request.parseResponse = NO;
     }
 
-    [[SFRestAPI sharedInstance] sendRequest:request failureBlock:^(id  _Nullable response, NSError * _Nullable e, NSURLResponse * _Nullable rawResponse) {
-        // XXX callback(@[RCTMakeError(@"sendRequest failed", e, nil)]);
+
+    [[SFRestAPI sharedInstance] sendRequest:request
+                                   failureBlock:^(id  _Nullable response, NSError * _Nullable e, NSURLResponse * _Nullable rawResponse) {
+                                          // XXX callback(@[RCTMakeError(@"sendRequest failed", e, nil)]);
         callback([FlutterError errorWithCode:@"ERROR" message:@"sendRequest failed" details:nil]);
-    } successBlock:^(id  _Nullable response, NSURLResponse * _Nullable rawResponse) {
-        id result;
+                                      }
+                                   successBlock:^(id  _Nullable response, NSURLResponse * _Nullable rawResponse) {
+                                      id result;
 
-        // Binary response
-        if (returnBinary) {
-            result = @{
-                       kEncodedBody:[((NSData*) response) base64EncodedStringWithOptions:0],
-                       kContentType:((NSHTTPURLResponse*) rawResponse).allHeaderFields[kHttpContentType]
-                       };
-        }
-        // Some response
-        else if (response) {
-            if ([response isKindOfClass:[NSDictionary class]]) {
-                result = response;
-            } else if ([response isKindOfClass:[NSArray class]]) {
-                result = response;
-            } else {
-                NSData* responseAsData = response;
-                NSStringEncoding encodingType = rawResponse.textEncodingName == nil ? NSUTF8StringEncoding :  CFStringConvertEncodingToNSStringEncoding(CFStringConvertIANACharSetNameToEncoding((CFStringRef)rawResponse.textEncodingName));
-                result = [[NSString alloc] initWithData:responseAsData encoding:encodingType];
-            }
-        }
-        // No response
-        else {
-            result = nil;
-        }
+                                      // Binary response
+                                      if (returnBinary) {
+                                          result = @{
+                                                     kEncodedBody:[((NSData*) response) base64EncodedStringWithOptions:0],
+                                                     kContentType:((NSHTTPURLResponse*) rawResponse).allHeaderFields[kHttpContentType]
+                                                     };
+                                      }
+                                      // Some response
+                                      else if (response) {
+                                          if ([response isKindOfClass:[NSDictionary class]]) {
+                                              result = response;
+                                          } else if ([response isKindOfClass:[NSArray class]]) {
+                                              result = response;
+                                          } else {
+                                              NSData* responseAsData = response;
+                                              NSStringEncoding encodingType = rawResponse.textEncodingName == nil ? NSUTF8StringEncoding :  CFStringConvertEncodingToNSStringEncoding(CFStringConvertIANACharSetNameToEncoding((CFStringRef)rawResponse.textEncodingName));
+                                              result = [[NSString alloc] initWithData:responseAsData encoding:encodingType];
+                                          }
+                                      }
+                                      // No response
+                                      else {
+                                          result = nil;
+                                      }
 
-        callback(result);
-    }];
+                                      callback(result);
+                                  }
+     ];
 }
 
 - (void) getClientInfo:(NSDictionary *)argsDict result:(FlutterResult)callback
@@ -150,10 +162,16 @@ static NSString * const kOrgId = @"orgId";
         callback([FlutterError errorWithCode:@"ERROR" message:@"No userAccount" details:nil]);
     } else {
         id useInfo = @{
-                   kInstanceUrl: currentUser.idData.idUrl,
+                   kInstanceUrl: currentUser.idData.idUrl.absoluteString,
                    kUsername: currentUser.idData.username,
                    kUserId: currentUser.idData.userId,
                    kOrgId: currentUser.idData.orgId,
+                   kFirstName: currentUser.idData.firstName,
+                   kLastName: currentUser.idData.lastName,
+                   kDisplayName: currentUser.idData.displayName,
+                   kEmail: currentUser.idData.email,
+                   kPhotoUrl: currentUser.idData.pictureUrl.absoluteString,
+                   kThumbnailUrl: currentUser.idData.thumbnailUrl.absoluteString,
                 };
         callback(useInfo);
     }
