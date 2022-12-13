@@ -22,9 +22,9 @@
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "SalesforceSDKCore.h"
+#import "SFFlutterBridge.h"
 
-@implementation SFOauthFlutterBridge
+@implementation SFFlutterBridge
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
     result(FlutterMethodNotImplemented);
