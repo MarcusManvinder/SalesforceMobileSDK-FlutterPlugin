@@ -22,25 +22,12 @@
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "SFOauthFlutterBridge.h"
 #import "SalesforceSDKCore.h"
 
 @implementation SFOauthFlutterBridge
 
-- (NSString*) prefix {
-    return @"oauth";
-}
-
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-    if ([@"oauth#logout" isEqualToString:call.method]) {
-        [self logout];
-    } else {
-        result(FlutterMethodNotImplemented);
-    }
-}
-
-- (void) logout {
-    [SFUserAccountManager.sharedInstance logout];
+    result(FlutterMethodNotImplemented);
 }
 
 @end
