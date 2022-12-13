@@ -3,7 +3,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'sfplugin'
-  s.version          = '10.2.0'
+  s.version          = '11.0.0'
   s.summary          = 'Flutter plugin for the Salesforce Mobile SDK.'
   s.description      = 'Flutter plugin for the Salesforce Mobile SDK.'
   s.homepage         = "https://github.com/forcedotcom/SalesforceMobileSDK-iOS.git"
@@ -18,6 +18,6 @@ Pod::Spec.new do |s|
   s.dependency 'SalesforceSDKCore'
   s.dependency 'SalesforceAnalytics'
 
-  s.ios.deployment_target = '10.0'
+  s.ios.deployment_target = '11.0'
 end
 
