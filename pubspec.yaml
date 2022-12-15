@@ -9,6 +9,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  plugin_platform_interface: ^2.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
@@ -16,8 +22,12 @@ dependencies:
 # The following section is specific to Flutter.
 flutter:
   plugin:
-    androidPackage: com.salesforce.flutter.sfplugin
-    pluginClass: SfpluginPlugin
+    platforms:
+      android:
+        package: com.salesforce.flutter.sfplugin
+        pluginClass: SfpluginPlugin
+      ios:
+        pluginClass: SfpluginPlugin
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:
