@@ -121,7 +121,11 @@ static NSString * const kThumbnailUrl = @"thumbnailUrl";
     [[SFRestAPI sharedInstance] sendRequest:request
                                    failureBlock:^(id  _Nullable response, NSError * _Nullable e, NSURLResponse * _Nullable rawResponse) {
                                           // XXX callback(@[RCTMakeError(@"sendRequest failed", e, nil)]);
-        callback([FlutterError errorWithCode:@"ERROR" message:@"sendRequest failed" details:nil]);
+        if ([e.userInfo[@"error"]  isEqual: @"invalid_client"]) {
+            [SFUserAccountManager.sharedInstance logout];
+        } else {
+            callback([FlutterError errorWithCode:@"ERROR" message:@"sendRequest failed" details:e.description]);
+        }
                                       }
                                    successBlock:^(id  _Nullable response, NSURLResponse * _Nullable rawResponse) {
                                       id result;
